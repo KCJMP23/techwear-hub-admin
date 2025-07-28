@@ -25,6 +25,20 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     );
   }
 
+  // TEMPORARY: Skip authentication for demo purposes
+  // In production, remove this and uncomment the authentication checks below
+  return (
+    <div className="flex min-h-screen bg-apple-gray-50 overflow-x-hidden">
+      <AdminNavigation />
+      <div className="flex-1 w-full overflow-x-hidden lg:ml-0">
+        <main className="p-4 md:p-6 lg:p-8 max-w-full">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+
+  /* UNCOMMENT FOR PRODUCTION
   // If not authenticated and not on auth page, redirect will be handled by ProtectedRoute
   if (status === 'loading') {
     return (
@@ -60,4 +74,5 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
       </div>
     </div>
   );
+  */
 } 
