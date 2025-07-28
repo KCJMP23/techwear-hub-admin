@@ -1,7 +1,37 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui';
+import { prisma } from '@/lib/db';
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  // Fetch real data from database
+  const [siteCount, postCount, productCount, clickStats] = await Promise.all([
+    prisma.site.count(),
+    prisma.blogPost.count(),
+    prisma.product.count(),
+    prisma.affiliateClick.aggregate({
+      _sum: {
+        revenue: true,
+      },
+      _count: {
+        id: true,
+      }
+    })
+  ]);
+
+  const totalRevenue = clickStats._sum.revenue || 0;
+  const totalClicks = clickStats._count.id || 0;
+
+  // Fetch recent activity
+  const recentActivity = await prisma.blogPost.findMany({
+    take: 4,
+    orderBy: {
+      createdAt: 'desc'
+    },
+    include: {
+      site: true
+    }
+  });
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -32,7 +62,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-apple-gray-600">Total Sites</p>
-                <p className="text-2xl font-bold text-apple-gray-900">3</p>
+                <p className="text-2xl font-bold text-apple-gray-900">{siteCount}</p>
               </div>
             </div>
           </div>
@@ -46,7 +76,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-apple-gray-600">Total Posts</p>
-                <p className="text-2xl font-bold text-apple-gray-900">127</p>
+                <p className="text-2xl font-bold text-apple-gray-900">{postCount}</p>
               </div>
             </div>
           </div>
@@ -60,7 +90,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-apple-gray-600">Total Products</p>
-                <p className="text-2xl font-bold text-apple-gray-900">342</p>
+                <p className="text-2xl font-bold text-apple-gray-900">{productCount}</p>
               </div>
             </div>
           </div>
@@ -74,7 +104,7 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-apple-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-apple-gray-900">$2,847</p>
+                <p className="text-2xl font-bold text-apple-gray-900">${totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -234,49 +264,33 @@ export default function AdminDashboard() {
         <div className="admin-action-card animate-fade-in-up animation-delay-700">
           <h2 className="text-xl font-bold text-apple-gray-900 mb-6">Recent Activity</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-apple-gray-50 rounded-2xl border border-apple-gray-100">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-apple-green rounded-full mr-4"></div>
-                <div>
-                  <p className="font-semibold text-apple-gray-900">New blog post published</p>
-                  <p className="text-sm text-apple-gray-600">&quot;Best Wireless Headphones 2024&quot; - TechGear Reviews</p>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((post) => (
+                <div key={post.id} className="flex items-center justify-between p-4 bg-apple-gray-50 rounded-2xl border border-apple-gray-100">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-apple-green rounded-full mr-4"></div>
+                    <div>
+                      <p className="font-semibold text-apple-gray-900">
+                        {post.status === 'published' ? 'Blog post published' : 'Blog post created'}
+                      </p>
+                      <p className="text-sm text-apple-gray-600">
+                        {post.title} - {post.site?.name || 'No site'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-sm text-apple-gray-500">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-apple-gray-500">No recent activity</p>
+                <p className="text-sm text-apple-gray-400 mt-2">
+                  Start by <Link href="/sites" className="text-apple-blue hover:underline">creating a site</Link> and <Link href="/generate" className="text-apple-blue hover:underline">generating content</Link>
+                </p>
               </div>
-              <span className="text-sm text-apple-gray-500">2 hours ago</span>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-apple-gray-50 rounded-2xl border border-apple-gray-100">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-apple-blue rounded-full mr-4"></div>
-                <div>
-                  <p className="font-semibold text-apple-gray-900">Product price updated</p>
-                  <p className="text-sm text-apple-gray-600">Sony WH-1000XM4 - Price dropped to $349.99</p>
-                </div>
-              </div>
-              <span className="text-sm text-apple-gray-500">4 hours ago</span>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-apple-gray-50 rounded-2xl border border-apple-gray-100">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-apple-orange rounded-full mr-4"></div>
-                <div>
-                  <p className="font-semibold text-apple-gray-900">New conversion</p>
-                  <p className="text-sm text-apple-gray-600">Apple AirPods Pro sale - $24.50 commission</p>
-                </div>
-              </div>
-              <span className="text-sm text-apple-gray-500">6 hours ago</span>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-apple-gray-50 rounded-2xl border border-apple-gray-100">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-apple-purple rounded-full mr-4"></div>
-                <div>
-                  <p className="font-semibold text-apple-gray-900">Social media post scheduled</p>
-                  <p className="text-sm text-apple-gray-600">Instagram post for &quot;Top 10 Tech Gadgets&quot;</p>
-                </div>
-              </div>
-              <span className="text-sm text-apple-gray-500">1 day ago</span>
-            </div>
+            )}
           </div>
         </div>
       </main>

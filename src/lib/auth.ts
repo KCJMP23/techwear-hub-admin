@@ -1,17 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
-
-// Simple in-memory user store for development
-// In production, this would be replaced with database queries
-const users = [
-  {
-    id: '1',
-    email: 'admin@example.com',
-    password_hash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.i8eK', // 'password'
-    name: 'Admin User'
-  }
-];
+import { supabase } from './supabase';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -26,24 +15,20 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Find user in our simple store
-        const user = users.find(u => u.email === credentials.email);
+        // Authenticate with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
 
-        if (!user) {
-          return null;
-        }
-
-        // Verify password
-        const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash);
-
-        if (!isValidPassword) {
+        if (error || !data.user) {
           return null;
         }
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.user_metadata?.name || data.user.email
         };
       }
     })

@@ -25,8 +25,8 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     );
   }
 
-  // TEMPORARY: Skip authentication for demo purposes
-  // In production, remove this and uncomment the authentication checks below
+  // For now, skip authentication until user sets up Supabase users
+  // TODO: Re-enable after creating user accounts in Supabase
   return (
     <div className="flex min-h-screen bg-apple-gray-50 overflow-x-hidden">
       <AdminNavigation />
