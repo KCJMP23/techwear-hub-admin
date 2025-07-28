@@ -3,34 +3,38 @@ import { Card } from '@/components/ui';
 import { prisma } from '@/lib/db';
 
 export default async function AdminDashboard() {
-  // Fetch real data from database
-  const [siteCount, postCount, productCount, clickStats] = await Promise.all([
-    prisma.site.count(),
-    prisma.blogPost.count(),
-    prisma.product.count(),
-    prisma.affiliateClick.aggregate({
-      _sum: {
-        revenue: true,
+  let siteCount = 0;
+  let postCount = 0;
+  let productCount = 0;
+  let totalRevenue = 0;
+  let totalClicks = 0;
+  let recentActivity: any[] = [];
+
+  try {
+    // Fetch real data from database
+    const [sites, posts, products] = await Promise.all([
+      prisma.site.count().catch(() => 0),
+      prisma.blogPost.count().catch(() => 0),
+      prisma.product.count().catch(() => 0)
+    ]);
+
+    siteCount = sites;
+    postCount = posts;
+    productCount = products;
+
+    // Fetch recent activity
+    recentActivity = await prisma.blogPost.findMany({
+      take: 4,
+      orderBy: {
+        createdAt: 'desc'
       },
-      _count: {
-        id: true,
+      include: {
+        site: true
       }
-    })
-  ]);
-
-  const totalRevenue = clickStats._sum.revenue || 0;
-  const totalClicks = clickStats._count.id || 0;
-
-  // Fetch recent activity
-  const recentActivity = await prisma.blogPost.findMany({
-    take: 4,
-    orderBy: {
-      createdAt: 'desc'
-    },
-    include: {
-      site: true
-    }
-  });
+    }).catch(() => []);
+  } catch (error) {
+    console.error('Dashboard data fetch error:', error);
+  }
 
   return (
     <div className="min-h-screen">
