@@ -4,25 +4,23 @@ import { CreateSiteButton, CreateFirstSiteButton } from '@/components/SiteAction
 
 export default async function SitesPage() {
   // Fetch all sites from the database
-  const sites = await prisma.site.findMany({
-    include: {
-      _count: {
-        select: {
-          blogPosts: true,
-          products: true,
-        }
+  let sites: any[] = [];
+  
+  try {
+    sites = await prisma.site.findMany({
+      orderBy: {
+        createdAt: 'desc'
       }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error fetching sites:', error);
+  }
 
-  // Calculate revenue for each site (this would come from analytics in production)
+  // Calculate stats for each site (simplified for now)
   const sitesWithStats = sites.map(site => ({
     ...site,
-    posts: site._count.blogPosts,
-    products: site._count.products,
+    posts: 0, // TODO: Calculate from related content
+    products: 0, // TODO: Calculate from related products
     revenue: 0, // TODO: Calculate from affiliate clicks
   }));
 
