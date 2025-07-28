@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { autoBlogPostService } from '@/lib/db/src/utils';
+import { autoBlogPostService } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {

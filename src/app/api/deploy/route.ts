@@ -7,7 +7,7 @@ import {
   autoBlogPostService, 
   contentScheduleService, 
   productCategoryService 
-} from '@/lib/db/src/utils';
+} from '@/lib/db';
 import { AIService } from '@/lib/ai';
 
 export async function POST(request: NextRequest) {

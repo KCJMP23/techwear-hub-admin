@@ -10,3 +10,4 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 // Export all the functions from site-config
 export * from './site-functions';
+export * from './utils';

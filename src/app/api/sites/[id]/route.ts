@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { siteService } from '@/lib/db/src/utils';
+import { siteService } from '@/lib/db';
 
 export async function PUT(
   request: NextRequest,
